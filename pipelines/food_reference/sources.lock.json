@@ -1,0 +1,35 @@
+{
+  "fsanz_afcd": [
+    {
+      "file": "AFCD Release 3 - Nutrient profiles.xlsx",
+      "sha256": "14cb3e73dbf58987b440e6299624c0fefd7a4e61591fc1f753995d9534e0efc9",
+      "bytes": 2107021
+    },
+    {
+      "file": "AFCD Release 3 - Food Details.xlsx",
+      "sha256": "69aa096c45cb0699db60a9c544442312e9ff09af587b99c42dc78bc26f689629",
+      "bytes": 1137444
+    }
+  ],
+  "open_food_facts": [
+    {
+      "file": "open_food_facts_au_2026-09-24.parquet",
+      "sha256": "5f874bbb6f2ec45e39bcea6588ca31dd11d3ebdcf1414f745dcbfabe2e619196",
+      "bytes": 7577576
+    }
+  ],
+  "usda_foundation": [
+    {
+      "file": "FoodData_Central_foundation_food_json_2026-04-30.json",
+      "sha256": "27d1fe3fd89edfbe528ed915da5619320e1d004d4594603a1b19bdb1511590cc",
+      "bytes": 6721650
+    }
+  ],
+  "usda_sr_legacy": [
+    {
+      "file": "FoodData_Central_sr_legacy_food_json_2018-04.json",
+      "sha256": "70d4235ae3a2bdf48a7b9eaa1286a83fa67b6f3270436c9ce8b008213f500129",
+      "bytes": 210758826
+    }
+  ]
+}

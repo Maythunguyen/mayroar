@@ -1,0 +1,72 @@
+# Downloaded and generated food data
+pipelines/food_reference/data/raw/
+pipelines/food_reference/data/clean/
+
+# Supabase local and linked-project state
+supabase/.temp/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js and build output
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Hosting
+.vercel/
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.uv-cache/
+*.egg-info/
+.coverage
+.coverage.*
+htmlcov/
+
+# Expo
+.expo/
+expo-env.d.ts
+
+# Logs
+*.log
+
+# macOS and Windows
+.DS_Store
+Thumbs.db
+
+# Editor files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Temporary files
+*.tmp
+*.swp
+*~

@@ -1,0 +1,50 @@
+[project]
+name = "food-reference"
+version = "0.1.0"
+description = "Builds MayRoar's food reference database from public food composition data."
+requires-python = ">=3.12"
+dependencies = [
+  "duckdb>=1.1",
+  "openpyxl>=3.1",
+  "pandas>=2.2",
+  "psycopg[binary]>=3.2",
+  "python-dotenv>=1.0",
+]
+
+[project.scripts]
+food-reference = "food_reference.cli:main"
+
+[dependency-groups]
+dev = [
+  "pandas-stubs>=2.2",
+  "pyright>=1.1.390",
+  "pytest>=8.3",
+  "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/food_reference"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "N"]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --import-mode=importlib"
+markers = [
+  "integration: needs a Postgres database (set TEST_DATABASE_URL)",
+  "contract: needs the real source files in data/raw",
+]
