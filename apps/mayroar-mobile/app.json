@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "MayRoar",
+    "slug": "mayroar-mobile",
+    "version": "0.1.0",
+    "scheme": "mayroar",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mayroar.mobile"
+    },
+    "android": {
+      "package": "com.mayroar.mobile",
+      "allowBackup": false,
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow MayRoar to scan food barcodes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-image",
+      "expo-font"
+    ],
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "db96403c-f4f6-43cd-ad8f-961c92229391"
+      }
+    }
+  }
+}
