@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
+import { useDatabase } from "../data/session";
 import { randomUUID } from "expo-crypto";
 import { saveCustomFood } from "../data/database";
 import {
@@ -25,11 +25,11 @@ import { Button, Field, Header, Message, Page, ui } from "../components/ui";
 import { Text } from "../components/Text";
 import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
-import { colors } from "../constants/theme";
+import { colors } from "../theme";
 
 const assets = designAssets["3-486"];
 export default function CustomFoodScreen() {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const params = useLocalSearchParams<{
     date?: string;
     meal?: string;

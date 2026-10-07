@@ -1,8 +1,8 @@
 import { View, StyleSheet } from "react-native";
 import { Text } from "./Text";
 import { numberLabel, type Nutrients } from "../domain/nutrition";
-import { colors } from "../constants/theme";
-import { ui } from "../components/ui";
+import { colors } from "../theme";
+import { ui } from "./ui";
 import { DesignIcon, type DesignAsset } from "./DesignIcon";
 
 export function NutritionCard({

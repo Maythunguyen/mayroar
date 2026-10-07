@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import { entriesForDay, readTargets } from "../data/database";
+import { useDatabase } from "../data/session";
+import { diaryForDay, readTargets, type Diary } from "../data/database";
 import {
   formatDay,
   localDay,
   numberLabel,
-  totals,
   validDay,
   type Entry,
   type Targets,
@@ -16,23 +15,25 @@ import { BottomTabs, Header, Message, Page, ui } from "../components/ui";
 import { Text } from "../components/Text";
 import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
-import { colors } from "../constants/theme";
+import { colors } from "../theme";
 
 const assets = designAssets["3-578"];
 export default function NutrientsScreen() {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const params = useLocalSearchParams<{ date?: string }>();
   const day = validDay(params.date) ? params.date : localDay();
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [diary, setDiary] = useState<Diary | null>(null);
   const [targets, setTargets] = useState<Targets | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    Promise.all([entriesForDay(db, day), readTargets(db)])
+    Promise.all([diaryForDay(db, day), readTargets(db)])
       .then(([items, goals]) => {
         if (active) {
-          setEntries(items);
+          setEntries(items.entries);
+          setDiary(items);
           setTargets(goals);
         }
       })
@@ -46,7 +47,7 @@ export default function NutrientsScreen() {
       active = false;
     };
   }, [db, day]);
-  const total = totals(entries);
+  const total = diary?.totals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
   const rows = (["calories", "protein", "carbs", "fat"] as const).map(
     (key) => ({
       key,
@@ -63,14 +64,10 @@ export default function NutrientsScreen() {
   const extraRows = (["fibre", "sugars"] as const).map((key) => ({
     key,
     label: key === "fibre" ? "Dietary fibre" : "Sugars",
-    value: entries.reduce(
-      (sum, entry) =>
-        sum + ((entry.food.extra?.[key] ?? 0) * entry.grams) / 100,
-      0,
-    ),
+    value: diary?.extra[key].value ?? 0,
     target: undefined,
     unit: "g",
-    missing: entries.filter((entry) => entry.food.extra?.[key] == null).length,
+    missing: diary?.extra[key].missing ?? 0,
   }));
   const incomplete = extraRows.some((row) => row.missing > 0);
   return (

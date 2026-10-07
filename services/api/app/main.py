@@ -1,42 +1,19 @@
 from contextlib import asynccontextmanager
 import httpx
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from .config import settings
-from .routers import auth, diary, foods, photos
+from .core.config import settings
+from .features.auth.router import router as auth_router
+from .features.diary.router import router as diary_router
+from .features.foods.router import router as foods_router
+from .features.photos.router import router as photos_router
+from .features.favourites.router import router as favourites_router
+from .features.targets.router import router as targets_router
+from .features.account.router import router as account_router
+from .core.exception_handlers import register_exception_handlers
 
 
-class BodyLimit:
-    """Bound actual streamed bytes, including requests without Content-Length."""
-    def __init__(self, app):
-        self.app = app
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
-            return await self.app(scope, receive, send)
-        limit = 7 * 1024 * 1024 if scope["path"] == "/analyse-food" else 128 * 1024
-        chunks, size = [], 0
-        while True:
-            message = await receive()
-            if message["type"] == "http.disconnect":
-                return
-            chunk = message.get("body", b"")
-            size += len(chunk)
-            if size > limit:
-                return await JSONResponse({"error": "Request is too large."}, status_code=413)(scope, receive, send)
-            chunks.append(chunk)
-            if not message.get("more_body", False):
-                break
-        consumed = False
-        async def bounded_receive():
-            nonlocal consumed
-            if consumed:
-                return await receive()
-            consumed = True
-            return {"type": "http.request", "body": b"".join(chunks), "more_body": False}
-        await self.app(scope, bounded_receive, send)
+from .core.middleware import BodyLimit
 
 
 @asynccontextmanager
@@ -61,28 +38,13 @@ def create_app(http_client=None):
                        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
                        allow_headers=["Authorization", "Content-Type"])
 
-    @app.exception_handler(HTTPException)
-    async def http_error(request: Request, exc: HTTPException):
-        return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
-
-    @app.exception_handler(RequestValidationError)
-    async def validation_error(request: Request, exc: RequestValidationError):
-        # Do not echo credentials or full image data from validation input.
-        return JSONResponse({"error": "Invalid request. Check dates, food values and required fields."}, status_code=422)
-
-    @app.exception_handler(httpx.TimeoutException)
-    async def timeout(request: Request, exc):
-        return JSONResponse({"error": "The upstream service timed out. Try again."}, status_code=504)
-
-    @app.exception_handler(httpx.RequestError)
-    async def connection_error(request: Request, exc):
-        return JSONResponse({"error": "Could not reach the upstream service."}, status_code=502)
+    register_exception_handlers(app)
 
     @app.get("/health")
     async def health():
         return {"status": "ok"}
 
-    for router in (auth.router, foods.router, diary.router, photos.router):
+    for router in (auth_router, foods_router, diary_router, photos_router, favourites_router, targets_router, account_router):
         app.include_router(router)
     return app
 

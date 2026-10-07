@@ -1,5 +1,5 @@
 import { Text as NativeText, StyleSheet, type TextProps } from "react-native";
-import { colors, fonts } from "../constants/theme";
+import { colors, fonts } from "../theme";
 
 // React Native does not inherit a page font like CSS. This wrapper applies Geist.
 export function Text({ style, ...props }: TextProps) {

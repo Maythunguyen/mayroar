@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
+import { useDatabase } from "../data/session";
 import { customFoods, favouriteFoods, recentFoods } from "../data/database";
 import { catalogueConfigured, searchFoods } from "../data/foodSearch";
 import {
@@ -30,11 +30,11 @@ import { PortionSheet } from "../components/PortionSheet";
 import { Text } from "../components/Text";
 import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
-import { colors, fonts } from "../constants/theme";
+import { colors, fonts } from "../theme";
 
 const assets = designAssets["3-244"];
 export default function SearchScreen() {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const params = useLocalSearchParams<{
     date?: string;
     meal?: string;
@@ -110,7 +110,7 @@ export default function SearchScreen() {
             setError(
               controller.signal.aborted
                 ? "Food search took too long. Please try again."
-                : "Could not reach the food catalogue. Your saved foods still work offline.",
+                : "Could not reach the food catalogue. Check your internet connection and API server.",
             );
         } finally {
           if (timeout) clearTimeout(timeout);
@@ -210,10 +210,11 @@ export default function SearchScreen() {
         contentContainerStyle={s.list}
         ListHeaderComponent={
           <View style={{ gap: 12 }}>
+              <Button secondary onPress={() => router.push({ pathname: "/photo", params: { date: day, meal } })}>Upload meal photo</Button>
+
             {!catalogueConfigured ? (
               <Message>
-                Connect your food catalogue to search online. My Foods works
-                offline.
+                Start the Python API to search and load your foods.
               </Message>
             ) : null}
             {barcode ? <Message>Barcode: {barcode}</Message> : null}

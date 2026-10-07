@@ -7,15 +7,18 @@ import {
   View,
 } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import { entriesForDay, readTargets } from "../data/database";
+import { useDatabase } from "../data/session";
+import {
+  diaryForDay,
+  readTargets,
+  type Diary,
+} from "../data/database";
 import {
   localDay,
   formatDay,
   moveDay,
   validDay,
   MEALS,
-  totals,
   portion,
   numberLabel,
   type Entry,
@@ -27,15 +30,16 @@ import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
 import { AssetButton, BottomTabs, Message, Page, ui } from "../components/ui";
 import { PortionSheet } from "../components/PortionSheet";
-import { colors } from "../constants/theme";
+import { colors } from "../theme";
 
 const assets = designAssets["3-126"];
 export default function NutritionScreen() {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const params = useLocalSearchParams<{ date?: string }>();
   const day = validDay(params.date) ? params.date : localDay();
   const setDay = (date: string) => router.setParams({ date });
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [diary, setDiary] = useState<Diary | null>(null);
   const [targets, setTargets] = useState<Targets | null>(null);
   const [openMeal, setOpenMeal] = useState<Meal | null>("Breakfast");
   const [editing, setEditing] = useState<Entry | null>(null);
@@ -47,10 +51,11 @@ export default function NutritionScreen() {
       let active = true;
       setLoading(true);
       setError("");
-      Promise.all([entriesForDay(db, day), readTargets(db)])
+      Promise.all([diaryForDay(db, day), readTargets(db)])
         .then(([items, goals]) => {
           if (active) {
-            setEntries(items);
+            setEntries(items.entries);
+            setDiary(items);
             setTargets(goals);
           }
         })
@@ -66,7 +71,7 @@ export default function NutritionScreen() {
       };
     }, [db, day, editing]),
   );
-  const total = totals(entries);
+  const total = diary?.totals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
   const navigate = (pathname: "/search" | "/scan") =>
     router.push({
       pathname,
@@ -186,12 +191,13 @@ export default function NutritionScreen() {
             const expanded = openMeal === meal;
             return (
               <View key={meal} style={s.mealCard}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${meal}, ${items.length} foods`}
                   accessibilityState={{ expanded }}
                   onPress={() => setOpenMeal(expanded ? null : meal)}
-                  style={s.mealHeader}
+                  style={[s.mealHeader, { flex: 1 }]}
                 >
                   <View style={s.mealTitle}>
                     <Text style={s.mealName}>{meal}</Text>
@@ -205,9 +211,15 @@ export default function NutritionScreen() {
                     )}
                   </View>
                   <Text style={s.kcal}>
-                    {numberLabel(totals(items).calories)} kcal
+                    {numberLabel((diary?.meals[meal].calories ?? 0))} kcal
                   </Text>
                 </Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={`Add food to ${meal}`}
+                  onPress={() => router.push({ pathname: "/search", params: { date: day, meal } })}
+                  style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 26, color: colors.green }}>+</Text>
+                </Pressable>
+                </View>
                 {expanded ? (
                   <>
                     <View style={{ overflow: "hidden" }}>
@@ -239,7 +251,7 @@ export default function NutritionScreen() {
                     ) : (
                       <Pressable
                         accessibilityRole="button"
-                        onPress={() => navigate("/search")}
+                        onPress={() => router.push({ pathname: "/search", params: { date: day, meal } })}
                         style={{ paddingVertical: 9 }}
                       >
                         <Text style={s.empty}>

@@ -10,12 +10,6 @@ import {
   validDay,
   type Food,
 } from "../src/domain/nutrition";
-import {
-  mapFood,
-  searchParameters,
-  type FoodRow,
-} from "../src/data/foodSearch";
-
 // Synthetic test fixture: this is never shown as a real catalogue food.
 export const fixture: Food = {
   id: "test:1",
@@ -97,45 +91,3 @@ test("calendar dates survive month/year changes and Sydney midnight", () => {
   }
 });
 
-test("maps database decimals without changing missing values into zero", () => {
-  const row: FoodRow = {
-    id: "test:2",
-    name: "Missing data test",
-    brand: null,
-    barcode: "0123456789012",
-    source_id: "test",
-    source_food_id: "2",
-    source_name: "Test",
-    source_version: "test",
-    source_attribution: "Test only",
-    quality_tier: "label",
-    energy_kcal: "0",
-    protein_g: null,
-    carbs_available_g: 0,
-    carbs_basis: null,
-    fat_g: "0",
-  };
-  assert.deepEqual(mapFood(row).per100g, {
-    calories: 0,
-    protein: null,
-    carbs: null,
-    fat: 0,
-  });
-  assert.equal(mapFood(row).barcode, "0123456789012");
-});
-
-test("search uses AND between words, handles punctuation and preserves barcode zeroes", () => {
-  const words = searchParameters("greek yoghurt").get("and")!;
-  assert.equal(
-    words,
-    '(or(name.ilike."*greek*",brand.ilike."*greek*"),or(name.ilike."*yoghurt*",brand.ilike."*yoghurt*"))',
-  );
-  const special = searchParameters('Brand,_(A)"').get("and")!;
-  assert.ok(special.includes("\\_"));
-  assert.ok(special.includes('\\"'));
-  assert.equal(
-    searchParameters("", "0123456789012").get("barcode"),
-    "in.(0123456789012,123456789012)",
-  );
-  assert.throws(() => searchParameters("", "123)or(true"));
-});

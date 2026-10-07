@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TargetSlider } from "../components/TargetSlider";
-import { useSQLiteContext } from "expo-sqlite";
+import { useDatabase } from "../data/session";
 import { router } from "expo-router";
 import { decimal, numberLabel, type Targets } from "../domain/nutrition";
 import { readTargets, saveTargets } from "../data/database";
@@ -18,11 +18,11 @@ import { Button, Header, Message, Page, ui } from "../components/ui";
 import { Text } from "../components/Text";
 import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
-import { colors, fonts } from "../constants/theme";
+import { colors, fonts } from "../theme";
 
 const assets = designAssets["3-1370"];
 export default function TargetsScreen() {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const [values, setValues] = useState({
     calories: "",
     protein: "",

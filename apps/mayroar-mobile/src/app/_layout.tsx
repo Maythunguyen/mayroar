@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import {
   useFonts,
@@ -8,12 +7,11 @@ import {
   Geist_700Bold,
 } from "@expo-google-fonts/geist";
 import { Stack, type ErrorBoundaryProps } from "expo-router";
-import { SQLiteProvider } from "expo-sqlite";
+import { SessionGate } from "../data/session";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { initialiseDatabase } from "../data/database";
 import { Button, Message, Page } from "../components/ui";
-import { colors } from "../constants/theme";
+import { colors } from "../theme";
 
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   return (
@@ -36,8 +34,6 @@ export default function RootLayout() {
     Geist_600SemiBold,
     Geist_700Bold,
   });
-  const [databaseError, setDatabaseError] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   if (!fontsLoaded && !fontError)
     return (
       <View
@@ -55,33 +51,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      {databaseError ? (
-        <Page>
-          <Message error>Could not open your local diary.</Message>
-          <Button
-            onPress={() => {
-              setDatabaseError(false);
-              setAttempt((value) => value + 1);
-            }}
-          >
-            Try again
-          </Button>
-        </Page>
-      ) : (
-        <SQLiteProvider
-          key={attempt}
-          databaseName="mayroar.db"
-          onInit={initialiseDatabase}
-          onError={() => setDatabaseError(true)}
-        >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.cream },
-            }}
-          />
-        </SQLiteProvider>
-      )}
+      <SessionGate>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.cream } }} />
+      </SessionGate>
     </SafeAreaProvider>
   );
 }

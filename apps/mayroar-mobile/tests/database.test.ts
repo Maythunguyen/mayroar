@@ -1,132 +1,52 @@
+// SQLite tests are replaced by API-client tests. Database isolation is tested in SQL.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DatabaseSync } from "node:sqlite";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import {
-  addEntry,
-  customFoods,
-  deleteEntry,
-  deleteLocalData,
-  entriesForDay,
-  initialiseDatabase,
-  readTargets,
-  saveCustomFood,
-  saveTargets,
-  updateEntry,
-  recentFoods,
-  favouriteFoods,
-  toggleFavourite,
-  type Database,
-} from "../src/data/database";
-import type { Food } from "../src/domain/nutrition";
+import { ApiClient } from "../src/data/apiClient";
 
-const food: Food = {
-  id: "test:1",
-  sourceId: "test",
-  sourceFoodId: "1",
-  sourceName: "Test only",
-  sourceVersion: "1",
-  attribution: "Synthetic fixture",
-  name: "Test food",
-  brand: null,
-  barcode: null,
-  qualityTier: "reference",
-  per100g: { calories: 100, protein: 10, carbs: 10, fat: 2 },
-};
-
-// Real SQLite with the same async method surface used by expo-sqlite.
-function adapter(connection: DatabaseSync): Database {
-  return {
-    execAsync: async (sql: string) => {
-      connection.exec(sql);
-    },
-    runAsync: async (sql: string, ...parameters: (string | number | null)[]) =>
-      connection.prepare(sql).run(...parameters),
-    getAllAsync: async (
-      sql: string,
-      ...parameters: (string | number | null)[]
-    ) => connection.prepare(sql).all(...parameters),
-    getFirstAsync: async (
-      sql: string,
-      ...parameters: (string | number | null)[]
-    ) => connection.prepare(sql).get(...parameters) ?? null,
-    withTransactionAsync: async (task: () => Promise<void>) => {
-      connection.exec("BEGIN");
-      try {
-        await task();
-        connection.exec("COMMIT");
-      } catch (error) {
-        connection.exec("ROLLBACK");
-        throw error;
-      }
-    },
-  } as unknown as Database;
-}
-
-test("diary survives reopening, keeps the original food snapshot, and stays on the chosen date", async () => {
-  const directory = mkdtempSync(join(tmpdir(), "mayroar-test-"));
-  let connection = new DatabaseSync(join(directory, "diary.db"));
+test("refreshes once for concurrent requests and forwards only the refreshed token", async () => {
+  const original = globalThis.fetch;
+  const calls: { path: string; token: string | null }[] = [];
+  globalThis.fetch = async (input, init) => {
+    const path = new URL(String(input)).pathname;
+    calls.push({ path, token: new Headers(init?.headers).get("Authorization") });
+    return Response.json(path === "/auth/login"
+      ? { access_token: "expired", refresh_token: "refresh1", expires_in: 0 }
+      : path === "/auth/refresh"
+        ? { access_token: "fresh", refresh_token: "refresh2", expires_in: 3600 }
+        : { ok: true });
+  };
   try {
-    let db = adapter(connection);
-    await initialiseDatabase(db);
-    await initialiseDatabase(db); // Migration is safe on subsequent app launches.
-    const selected = structuredClone(food);
-    await addEntry(db, "2026-10-01", "Lunch", selected, 125);
-    selected.per100g.calories = 999;
-    connection.close();
-    connection = new DatabaseSync(join(directory, "diary.db"));
-    db = adapter(connection);
-    const entries = await entriesForDay(db, "2026-10-01");
-    assert.equal(entries.length, 1);
-    assert.equal(entries[0].food.per100g.calories, 100);
-    assert.equal(entries[0].food.sourceFoodId, "1");
-    assert.equal(entries[0].meal, "Lunch");
-    assert.equal((await entriesForDay(db, "2026-10-02")).length, 0);
-    await updateEntry(db, entries[0], 200, "Dinner");
-    const edited = (await entriesForDay(db, "2026-10-01"))[0];
-    assert.equal(edited.grams, 200);
-    assert.equal(edited.meal, "Dinner");
-    assert.equal(edited.food.per100g.calories, 100);
-    await addEntry(db, "2026-10-01", "Snacks", food, 50);
-    assert.equal((await recentFoods(db)).length, 1);
-    await deleteEntry(db, entries[0].id);
-    assert.equal((await entriesForDay(db, "2026-10-01")).length, 1);
-  } finally {
-    connection.close();
-    rmSync(directory, { recursive: true, force: true });
-  }
+    const api = new ApiClient();
+    await assert.rejects(api.request("/diary"), /Sign in/);
+    await api.login("test@example.com", "password");
+    await Promise.all([api.request("/diary"), api.request("/targets")]);
+    assert.equal(calls.filter(x => x.path === "/auth/refresh").length, 1);
+    assert.ok(calls.filter(x => ["/diary", "/targets"].includes(x.path)).every(x => x.token === "Bearer fresh"));
+    await api.logout();
+    assert.equal(api.isSignedIn(), false);
+  } finally { globalThis.fetch = original; }
 });
 
-test("invalid input is rejected; target and personal-food deletion removes all local records", async () => {
-  const connection = new DatabaseSync(":memory:");
-  const db = adapter(connection);
+test("a refresh response cannot restore a session after sign-out", async () => {
+  const original = globalThis.fetch;
+  let finish: (value: Response) => void = () => {};
+  let start: () => void = () => {};
+  const started = new Promise<void>(resolve => { start = resolve; });
+  globalThis.fetch = async (input) => {
+    const path = new URL(String(input)).pathname;
+    if (path === "/auth/login") return Response.json({ access_token: "old", refresh_token: "old-refresh", expires_in: 0 });
+    if (path === "/auth/refresh") { start(); return new Promise<Response>(resolve => { finish = resolve; }); }
+    return Response.json({ ok: true });
+  };
   try {
-    await initialiseDatabase(db);
-    await assert.rejects(addEntry(db, "2026-02-30", "Lunch", food, 100));
-    await assert.rejects(addEntry(db, "2026-10-01", "Lunch", food, -1));
-    await saveCustomFood(db, { ...food, qualityTier: "custom" });
-    await addEntry(db, "2026-10-01", "Lunch", food, 100);
-    await saveTargets(db, {
-      calories: 2000,
-      protein: 100,
-      carbs: 200,
-      fat: 60,
-    });
-    assert.equal((await customFoods(db, "test")).length, 1);
-    assert.equal((await readTargets(db))?.calories, 2000);
-    assert.equal(await toggleFavourite(db, food), true);
-    assert.equal((await favouriteFoods(db)).length, 1);
-    assert.equal(await toggleFavourite(db, food), false);
-    assert.equal((await favouriteFoods(db)).length, 0);
-    await toggleFavourite(db, food);
-    await deleteLocalData(db);
-    assert.equal((await customFoods(db)).length, 0);
-    assert.equal((await entriesForDay(db, "2026-10-01")).length, 0);
-    assert.equal(await readTargets(db), null);
-    assert.deepEqual(await favouriteFoods(db), []);
-  } finally {
-    connection.close();
-  }
+    const api = new ApiClient();
+    await api.login("test@example.com", "password");
+    const pending = api.request("/diary");
+    const rejected = assert.rejects(pending, /Session changed/);
+    await started;
+    await api.logout();
+    finish(Response.json({ access_token: "late", refresh_token: "late-refresh", expires_in: 3600 }));
+    await rejected;
+    assert.equal(api.isSignedIn(), false);
+  } finally { globalThis.fetch = original; }
 });

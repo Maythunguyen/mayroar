@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSQLiteContext } from "expo-sqlite";
+import { useDatabase } from "../data/session";
 import { router } from "expo-router";
 import {
   addEntry,
@@ -39,7 +39,7 @@ import { Text } from "./Text";
 import { DesignIcon } from "./DesignIcon";
 import { designAssets } from "./designAssets";
 import { NutritionCard } from "./NutritionCard";
-import { colors, fonts } from "../constants/theme";
+import { colors, fonts } from "../theme";
 
 const quantityAssets = designAssets["3-2338"];
 const mealAssets = designAssets["3-2411"];
@@ -64,7 +64,7 @@ export function PortionSheet({
   onClose: () => void;
   entry?: Entry;
 }) {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const [step, setStep] = useState<"details" | "quantity" | "meal">(
     entry ? "quantity" : "details",
   );

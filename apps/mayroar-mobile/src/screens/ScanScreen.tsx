@@ -23,7 +23,7 @@ import { Text } from "../components/Text";
 import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
 import { localDay, readMeal, validDay } from "../domain/nutrition";
-import { colors } from "../constants/theme";
+import { colors } from "../theme";
 
 const assets = designAssets["3-433"];
 export default function ScanScreen() {

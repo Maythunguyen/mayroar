@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import Slider from "@react-native-community/slider";
 import { DesignIcon } from "./DesignIcon";
 import { designAssets } from "./designAssets";
-import { colors } from "../constants/theme";
+import { colors } from "../theme";
 
 // Keep native slider interaction and accessibility while drawing the Figma track and thumb.
 export function TargetSlider({

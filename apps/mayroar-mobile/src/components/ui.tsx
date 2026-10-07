@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { colors, fonts } from "../constants/theme";
+import { colors, fonts } from "../theme";
 import { MEALS, type Meal } from "../domain/nutrition";
 import { Text } from "./Text";
 import { DesignIcon, type DesignAsset } from "./DesignIcon";
