@@ -5,7 +5,7 @@ import { localDay, readMeal, validDay } from "../domain/nutrition";
 import { Header, MealPicker, Message, Page } from "../components/ui";
 import { PhotoUpload } from "../features/photo/PhotoUpload.web";
 import { EstimateForm } from "../features/photo/EstimateForm";
-import { usePhotoAnalysis } from "../features/photo/usePhotoAnalysis.web";
+import { usePhotoAnalysis } from "../features/photo/usePhotoAnalysis";
 
 export default function PhotoScreen() {
   const db = useDatabase();

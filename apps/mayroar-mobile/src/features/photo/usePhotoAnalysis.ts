@@ -3,8 +3,8 @@ import { randomUUID } from "expo-crypto";
 import { addEntry, type Database } from "../../data/database";
 import type { Meal } from "../../domain/nutrition";
 import { analysePhoto } from "./api";
-import { readPhoto } from "./readPhoto.web";
-import { toDiaryFood, type Draft } from "./model";
+import { readPhoto } from "./readPhoto";
+import { toDiaryFood, type Draft, type PhotoInput, PickedPhoto } from "./model";
 
 type Status = "idle" | "reading" | "analysing" | "saving" | "saved";
 
@@ -39,11 +39,11 @@ export function usePhotoAnalysis(db: Database, day: string, initialMeal: Meal) {
     }
   }
 
-  function choose(file?: File) {
-    if (!file) return;
+  function choose(input?: PhotoInput) {
+    if (!input) return;
     return run("reading", async signal => {
       setDraft(null); setPhoto("");
-      const image = await readPhoto(file, signal);
+      const image = await readPhoto(input, signal);
       if (!signal.aborted) setPhoto(image);
     });
   }

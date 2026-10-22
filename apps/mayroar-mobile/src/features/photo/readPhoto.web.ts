@@ -1,4 +1,7 @@
-export function readPhoto(file: File, signal: AbortSignal): Promise<string> {
+import type { PhotoInput } from "./model";
+
+export function readPhoto(file: PhotoInput, signal: AbortSignal): Promise<string> {
+  if (!(file instanceof File)) throw new Error("Could not read this photo.");
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
       file.size === 0 || file.size > 5 * 1024 * 1024) {
     throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");

@@ -4,7 +4,7 @@ import io
 import warnings
 from PIL import Image, UnidentifiedImageError
 from ...core.errors import ServiceError
-Image.MAX_IMAGE_PIXELS = 20_000_000
+Image.MAX_IMAGE_PIXELS = 50_000_000
 
 def validate_image(data_url: str):
     try:
@@ -21,7 +21,7 @@ def validate_image(data_url: str):
             with Image.open(io.BytesIO(raw)) as img:
                 if img.format != formats[mime] or getattr(img, "n_frames", 1) != 1:
                     raise ValueError()
-                if img.width * img.height > 20_000_000:
+                if img.width * img.height > 50_000_000:
                     raise ValueError()
                 img.verify()
     except (ValueError, binascii.Error, OSError, UnidentifiedImageError, Image.DecompressionBombError, Image.DecompressionBombWarning):

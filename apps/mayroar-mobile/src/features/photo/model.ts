@@ -7,6 +7,8 @@ export type Draft = {
   assumptions: string;
   values: Record<FieldKey, string>;
 };
+export type PickedPhoto = { uri: string; base64?: string; mimeType?: string; fileName?: string };
+export type PhotoInput = File | PickedPhoto;
 
 export function parseEstimate(value: unknown): Draft {
   if (!value || typeof value !== "object") throw new Error("Invalid estimate.");

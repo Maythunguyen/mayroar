@@ -17,7 +17,7 @@ export function PhotoUpload(props: Props) {
     <input aria-label="Choose food photo" type="file" accept="image/jpeg,image/png,image/webp"
       disabled={props.disabled} onChange={event => {
         props.onChoose(event.target.files?.[0]); event.target.value = "";
-      }} />
+      }} capture="environment"/>
     {props.photo ? <Image source={{ uri: props.photo }} resizeMode="contain"
       style={{ width: "100%", height: 240, borderRadius: 18 }} /> : null}
     <Field label="Portion or ingredients you know (optional)" value={props.notes}

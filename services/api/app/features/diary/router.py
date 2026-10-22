@@ -4,6 +4,7 @@ from ...core.dependencies import store
 from . import service
 from datetime import date
 from .schemas import EntryCreate, EntryUpdate
+from ..foods.schemas import Food
 
 router = APIRouter(tags=['diary'])
 
@@ -22,9 +23,6 @@ async def update_entry(entry_id: int, body: EntryUpdate, db: Store = Depends(sto
 @router.delete("/entries/{entry_id}")
 async def delete_entry(entry_id: int, db: Store = Depends(store)):
     return await service.delete_entry(entry_id, db)
-
-
-from ..foods.schemas import Food
 
 @router.get("/recent-foods", response_model=list[Food])
 async def recent(db: Store = Depends(store)):

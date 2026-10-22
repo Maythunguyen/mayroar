@@ -11,6 +11,7 @@ from .features.favourites.router import router as favourites_router
 from .features.targets.router import router as targets_router
 from .features.account.router import router as account_router
 from .core.exception_handlers import register_exception_handlers
+from .features.target_calculation.router import router as target_calculation_router
 
 
 from .core.middleware import BodyLimit
@@ -44,7 +45,7 @@ def create_app(http_client=None):
     async def health():
         return {"status": "ok"}
 
-    for router in (auth_router, foods_router, diary_router, photos_router, favourites_router, targets_router, account_router):
+    for router in (auth_router, foods_router, diary_router, photos_router, favourites_router, targets_router, account_router, target_calculation_router):
         app.include_router(router)
     return app
 
