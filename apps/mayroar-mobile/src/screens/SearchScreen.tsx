@@ -247,7 +247,7 @@ export default function SearchScreen() {
                     : "Search with at least two letters. Favourites and recently logged foods will appear here."}
               </Message>
             </View>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item, index }) => (
           <View style={{ gap: 12 }}>
