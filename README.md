@@ -294,6 +294,12 @@ Stop Expo and restart it:
 npx expo start --web --port 8081 --clear
 ```
 
+Running backend service to test on Expo go - mobile version
+
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8787
+```
+
 **A request fails**
 
 Check both the browser's Network panel and the API terminal.
