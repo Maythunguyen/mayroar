@@ -28,7 +28,7 @@ import {
 import { Text } from "../components/Text";
 import { DesignIcon } from "../components/DesignIcon";
 import { designAssets } from "../components/designAssets";
-import { AssetButton, BottomTabs, Message, Page, ui } from "../components/ui";
+import { AssetButton, BottomTabs, Message, Page, ui, Button } from "../components/ui";
 import { PortionSheet } from "../components/PortionSheet";
 import { colors } from "../theme";
 
@@ -181,6 +181,13 @@ export default function NutritionScreen() {
           >
             <Text style={s.nutrientsLink}>View all nutrients →</Text>
           </Pressable>
+          <Button
+            secondary
+            onPress={() => router.push("/target-calculation")}
+          >
+            Help me calculate my targets
+          </Button>
+
         </View>
         {error ? <Message error>{error}</Message> : null}
         {loading ? (
